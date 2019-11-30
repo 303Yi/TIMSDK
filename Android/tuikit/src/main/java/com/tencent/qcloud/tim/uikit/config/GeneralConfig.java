@@ -7,16 +7,15 @@ import com.tencent.imsdk.TIMLogLevel;
  */
 public class GeneralConfig {
 
-    private static final String TAG = GeneralConfig.class.getSimpleName();
-
     public final static int DEFAULT_AUDIO_RECORD_MAX_TIME = 60;
     public final static int DEFAULT_VIDEO_RECORD_MAX_TIME = 15;
-
+    private static final String TAG = GeneralConfig.class.getSimpleName();
     private String appCacheDir;
     private int audioRecordMaxTime = DEFAULT_AUDIO_RECORD_MAX_TIME;
     private int videoRecordMaxTime = DEFAULT_VIDEO_RECORD_MAX_TIME;
     private int logLevel = TIMLogLevel.DEBUG;
     private boolean enableLogPrint = true;
+    private boolean showRead = false;
 
     /**
      * 获取是否打印日志
@@ -55,6 +54,15 @@ public class GeneralConfig {
     }
 
     /**
+     * 获取TUIKit缓存路径
+     *
+     * @return
+     */
+    public String getAppCacheDir() {
+        return appCacheDir;
+    }
+
+    /**
      * 设置TUIKit缓存路径
      *
      * @param appCacheDir
@@ -63,6 +71,15 @@ public class GeneralConfig {
     public GeneralConfig setAppCacheDir(String appCacheDir) {
         this.appCacheDir = appCacheDir;
         return this;
+    }
+
+    /**
+     * 获取录音最大时长
+     *
+     * @return
+     */
+    public int getAudioRecordMaxTime() {
+        return audioRecordMaxTime;
     }
 
     /**
@@ -77,6 +94,15 @@ public class GeneralConfig {
     }
 
     /**
+     * 获取录像最大时长
+     *
+     * @return
+     */
+    public int getVideoRecordMaxTime() {
+        return videoRecordMaxTime;
+    }
+
+    /**
      * 摄像最大时长
      *
      * @param videoRecordMaxTime
@@ -88,27 +114,21 @@ public class GeneralConfig {
     }
 
     /**
-     * 获取TUIKit缓存路径
-     * @return
-     */
-    public String getAppCacheDir() {
-        return appCacheDir;
-    }
-
-    /**
-     * 获取录音最大时长
+     * 对方已读的 view 是否展示
      *
      * @return
      */
-    public int getAudioRecordMaxTime() {
-        return audioRecordMaxTime;
+    public boolean isShowRead() {
+        return showRead;
     }
 
     /**
-     * 获取录像最大时长
+     * 设置对方已读的 view 是否展示
+     *
      * @return
      */
-    public int getVideoRecordMaxTime() {
-        return videoRecordMaxTime;
+    public void setShowRead(boolean showRead) {
+        this.showRead = showRead;
     }
+
 }

@@ -13,7 +13,6 @@
     "pages/groupDetail/main",
     "pages/groups/main",
     "pages/blacklist/main",
-    "pages/mention/main",
     "pages/profile/main"
   ],
   "window": {
@@ -42,7 +41,7 @@
         "selectedIconPath": "static/images/address_focus.png"
       },
       {
-        "text": "账号",
+        "text": "帐号",
         "pagePath": "pages/own/main",
         "iconPath": "static/images/my.png",
         "selectedIconPath": "static/images/my_focus.png"

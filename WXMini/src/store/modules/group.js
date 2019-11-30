@@ -24,10 +24,12 @@ const groupModules = {
       state.currentGroupProfile = groupProfile
     },
     resetGroup (state) {
-      state.groupList = []
       state.currentGroupProfile = {}
       state.currentGroupMemberList = []
       state.offset = 0
+    },
+    setCurrentGroupMemberList (state, groupMemberList) {
+      state.currentGroupMemberList = [...groupMemberList]
     }
   },
   actions: {

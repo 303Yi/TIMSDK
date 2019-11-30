@@ -1,5 +1,8 @@
 <template>
   <div class="chatting">
+    <div v-if="allConversation.length === 0" class="empty">
+      <button type="button" class="empty-button" @click="empty">发起会话</button>
+    </div>
     <div class="chat" v-for="item in allConversation" :key="item.conversationID">
       <i-modal title="确认删除会话？" :visible="modalVisible" @ok="handleConfirm()" @cancel="handleModalShow">
       </i-modal>
@@ -36,7 +39,8 @@
                 <div class="last">{{item.lastMessage._lastTime}}</div>
               </div>
               <div class="information">
-                <div class="content" v-if="item.lastMessage.fromAccount === '@TIM#SYSTEM'">[群系统消息]</div>
+                <div class="content" v-if="item.lastMessage.fromAccount === '@TIM#SYSTEM'">{{item.lastMessage.messageForShow}}</div>
+                <div class="content" v-else-if="item.lastMessage.type === 'TIMCustomElem'">[自定义消息]</div>
                 <div class="content-red" v-else-if="item.lastMessage.at && item.unreadCount > 0">[有人@你了]</div>
                 <div class="content" v-else>{{item.lastMessage.fromAccount}}：{{item.lastMessage.messageForShow}}</div>
                 <div class="remain" v-if="item.unreadCount > 0">{{item.unreadCount}}</div>
@@ -53,7 +57,7 @@
           <i-col span="20">
             <div class="right">
               <div class="information">
-                <div class="username">系统消息</div>
+                <div class="username">系统通知</div>
                 <div class="remain" v-if="item.unreadCount > 0">{{item.unreadCount}}</div>
               </div>
               <div class="information">
@@ -112,9 +116,6 @@ export default {
     },
     // 点击某会话
     checkoutConversation (item, name) {
-      if (item.lastMessage.at) {
-        this.$store.commit('offAtRemind', item)
-      }
       this.$store.commit('resetCurrentConversation')
       this.$store.commit('resetGroup')
       this.setMessageRead(item)
@@ -151,6 +152,10 @@ export default {
       wx.$app.deleteConversation(item.conversationID).then((res) => {
         console.log('delete success', res)
       })
+    },
+    empty () {
+      let url = '../friend/main'
+      wx.navigateTo({url})
     }
   },
   // 初始化加载userProfile并且存入store
@@ -167,6 +172,18 @@ export default {
 </script>
 
 <style lang='stylus' scoped>
+.empty
+  display flex
+  align-content center
+  justify-content center
+  .empty-button
+    color white
+    margin-top 40vh
+    background-color $primary
+    border-radius 8px
+    line-height 30px
+    font-size 16px
+    width 50vw
 .input
   text-align center
   height 32px

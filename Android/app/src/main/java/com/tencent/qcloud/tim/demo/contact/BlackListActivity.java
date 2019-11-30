@@ -1,6 +1,5 @@
 package com.tencent.qcloud.tim.demo.contact;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -38,7 +37,6 @@ public class BlackListActivity extends BaseActivity {
         mTitleBar.getRightGroup().setVisibility(View.GONE);
 
         mListView = findViewById(R.id.black_list);
-        mListView.loadDataSource(ContactListView.DataSource.BLACK_LIST);
         mListView.setOnItemClickListener(new ContactListView.OnItemClickListener() {
             @Override
             public void onItemClick(int position, ContactItemBean contact) {

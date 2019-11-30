@@ -40,10 +40,9 @@ import java.util.List;
 
 public class MessageInfoUtil {
 
-    private static final String TAG = MessageInfoUtil.class.getSimpleName();
-
     public static final String GROUP_CREATE = "group_create";
     public static final String GROUP_DELETE = "group_delete";
+    private static final String TAG = MessageInfoUtil.class.getSimpleName();
 
     /**
      * 创建一条文本消息
@@ -58,7 +57,8 @@ public class MessageInfoUtil {
         ele.setText(message);
         TIMMsg.addElement(ele);
         info.setExtra(message);
-        info.setMsgTime(System.currentTimeMillis());
+        info.setMsgTime(System.currentTimeMillis() / 1000);
+        info.setElement(ele);
         info.setSelf(true);
         info.setTIMMessage(TIMMsg);
         info.setFromUser(TIMManager.getInstance().getLoginUser());
@@ -81,7 +81,8 @@ public class MessageInfoUtil {
         ele.setData(faceName.getBytes());
         TIMMsg.addElement(ele);
         info.setExtra("[自定义表情]");
-        info.setMsgTime(System.currentTimeMillis());
+        info.setMsgTime(System.currentTimeMillis() / 1000);
+        info.setElement(ele);
         info.setSelf(true);
         info.setTIMMessage(TIMMsg);
         info.setFromUser(TIMManager.getInstance().getLoginUser());
@@ -117,7 +118,8 @@ public class MessageInfoUtil {
         info.setSelf(true);
         info.setTIMMessage(TIMMsg);
         info.setExtra("[图片]");
-        info.setMsgTime(System.currentTimeMillis());
+        info.setMsgTime(System.currentTimeMillis() / 1000);
+        info.setElement(ele);
         info.setFromUser(TIMManager.getInstance().getLoginUser());
         info.setMsgType(MessageInfo.MSG_TYPE_IMAGE);
         return info;
@@ -159,7 +161,8 @@ public class MessageInfoUtil {
         info.setDataUri(videoUri);
         info.setTIMMessage(TIMMsg);
         info.setExtra("[视频]");
-        info.setMsgTime(System.currentTimeMillis());
+        info.setMsgTime(System.currentTimeMillis() / 1000);
+        info.setElement(ele);
         info.setFromUser(TIMManager.getInstance().getLoginUser());
         info.setMsgType(MessageInfo.MSG_TYPE_VIDEO);
         return info;
@@ -185,7 +188,8 @@ public class MessageInfoUtil {
         info.setSelf(true);
         info.setTIMMessage(TIMMsg);
         info.setExtra("[语音]");
-        info.setMsgTime(System.currentTimeMillis());
+        info.setMsgTime(System.currentTimeMillis() / 1000);
+        info.setElement(ele);
         info.setFromUser(TIMManager.getInstance().getLoginUser());
         info.setMsgType(MessageInfo.MSG_TYPE_AUDIO);
         return info;
@@ -213,7 +217,8 @@ public class MessageInfoUtil {
             info.setSelf(true);
             info.setTIMMessage(TIMMsg);
             info.setExtra("[文件]");
-            info.setMsgTime(System.currentTimeMillis());
+            info.setMsgTime(System.currentTimeMillis() / 1000);
+            info.setElement(ele);
             info.setFromUser(TIMManager.getInstance().getLoginUser());
             info.setMsgType(MessageInfo.MSG_TYPE_FILE);
             return info;
@@ -235,7 +240,8 @@ public class MessageInfoUtil {
         TIMMsg.addElement(ele);
         info.setSelf(true);
         info.setTIMMessage(TIMMsg);
-        info.setMsgTime(System.currentTimeMillis());
+        info.setMsgTime(System.currentTimeMillis() / 1000);
+        info.setElement(ele);
         info.setMsgType(MessageInfo.MSG_TYPE_CUSTOM);
         info.setFromUser(TIMManager.getInstance().getLoginUser());
         return info;
@@ -248,23 +254,13 @@ public class MessageInfoUtil {
      * @param message 消息内容
      * @return
      */
-    public static MessageInfo buildGroupCustomMessage(String action, String message) {
-        MessageInfo info = new MessageInfo();
+    public static TIMMessage buildGroupCustomMessage(String action, String message) {
         TIMMessage TIMMsg = new TIMMessage();
         TIMCustomElem ele = new TIMCustomElem();
         ele.setData(action.getBytes());
         ele.setExt(message.getBytes());
         TIMMsg.addElement(ele);
-        info.setSelf(true);
-        info.setTIMMessage(TIMMsg);
-        info.setExtra(message);
-        info.setMsgTime(System.currentTimeMillis());
-        if (action.equals(GROUP_CREATE)) {
-            info.setMsgType(MessageInfo.MSG_TYPE_GROUP_CREATE);
-        } else if (action.equals(GROUP_DELETE)) {
-            info.setMsgType(MessageInfo.MSG_TYPE_GROUP_DELETE);
-        }
-        return info;
+        return TIMMsg;
     }
 
     /**
@@ -333,7 +329,7 @@ public class MessageInfoUtil {
                 return true;
             }
             return false;
-        } catch (Exception e){
+        } catch (Exception e) {
             TUIKitLog.e(TAG, "parse json error");
         }
         return false;
@@ -351,19 +347,19 @@ public class MessageInfoUtil {
         }
         String sender = timMessage.getSender();
         msgInfo.setTIMMessage(timMessage);
+        msgInfo.setElement(ele);
         msgInfo.setGroup(isGroup);
         msgInfo.setId(timMessage.getMsgId());
+        msgInfo.setUniqueId(timMessage.getMsgUniqueId());
+        msgInfo.setPeerRead(timMessage.isPeerReaded());
+        msgInfo.setFromUser(sender);
         if (isGroup) {
             TIMGroupMemberInfo memberInfo = timMessage.getSenderGroupMemberProfile();
             if (memberInfo != null && !TextUtils.isEmpty(memberInfo.getNameCard())) {
-                msgInfo.setFromUser(memberInfo.getNameCard());
-            } else {
-                msgInfo.setFromUser(sender);
+                msgInfo.setGroupNameCard(memberInfo.getNameCard());
             }
-        } else {
-            msgInfo.setFromUser(sender);
         }
-        msgInfo.setMsgTime(timMessage.timestamp() * 1000);
+        msgInfo.setMsgTime(timMessage.timestamp());
         msgInfo.setSelf(sender.equals(TIMManager.getInstance().getLoginUser()));
 
         TIMElemType type = ele.getType();
@@ -372,7 +368,10 @@ public class MessageInfoUtil {
             String data = new String(customElem.getData());
             if (data.equals(GROUP_CREATE)) {
                 msgInfo.setMsgType(MessageInfo.MSG_TYPE_GROUP_CREATE);
-                String message = wrapperColor(msgInfo.getFromUser()) + "创建群组";
+                String message = TUIKitConstants.covert2HTMLString(
+                        TextUtils.isEmpty(msgInfo.getGroupNameCard())
+                                ? msgInfo.getFromUser()
+                                : msgInfo.getGroupNameCard()) + "创建群组";
                 msgInfo.setExtra(message);
             } else if (data.equals(GROUP_DELETE)) {
                 msgInfo.setMsgType(MessageInfo.MSG_TYPE_GROUP_DELETE);
@@ -404,7 +403,7 @@ public class MessageInfoUtil {
             } else {
                 user = groupTips.getOpUserInfo().getIdentifier();
             }
-            String message = wrapperColor(user);
+            String message = TUIKitConstants.covert2HTMLString(user);
             if (tipsType == TIMGroupTipsType.Join) {
                 msgInfo.setMsgType(MessageInfo.MSG_TYPE_GROUP_JOIN);
                 message = message + "加入群组";
@@ -563,32 +562,33 @@ public class MessageInfoUtil {
                     filename = System.currentTimeMillis() + fileElem.getFileName();
                 }
                 final String path = TUIKitConstants.FILE_DOWNLOAD_DIR + filename;
-                if (!msgInfo.isSelf()) {
-                    File file = new File(path);
-                    if (!file.exists()) {
-                        msgInfo.setStatus(MessageInfo.MSG_STATUS_UN_DOWNLOAD);
+                File file = new File(path);
+                if (file.exists()) {
+                    if (msgInfo.isSelf()) {
+                        msgInfo.setStatus(MessageInfo.MSG_STATUS_SEND_SUCCESS);
                     } else {
                         msgInfo.setStatus(MessageInfo.MSG_STATUS_DOWNLOADED);
                     }
                     msgInfo.setDataPath(path);
                 } else {
-                    if (TextUtils.isEmpty(fileElem.getPath())) {
-                        fileElem.getToFile(path, new TIMCallBack() {
-                            @Override
-                            public void onError(int code, String desc) {
-                                TUIKitLog.e("MessageInfoUtil getToFile", code + ":" + desc);
-                            }
-
-                            @Override
-                            public void onSuccess() {
+                    if (msgInfo.isSelf()) {
+                        if (TextUtils.isEmpty(fileElem.getPath())) {
+                            msgInfo.setStatus(MessageInfo.MSG_STATUS_UN_DOWNLOAD);
+                            msgInfo.setDataPath(path);
+                        } else {
+                            file = new File(fileElem.getPath());
+                            if (file.exists()) {
+                                msgInfo.setStatus(MessageInfo.MSG_STATUS_SEND_SUCCESS);
+                                msgInfo.setDataPath(fileElem.getPath());
+                            } else {
+                                msgInfo.setStatus(MessageInfo.MSG_STATUS_UN_DOWNLOAD);
                                 msgInfo.setDataPath(path);
                             }
-                        });
+                        }
                     } else {
-                        msgInfo.setStatus(MessageInfo.MSG_STATUS_SEND_SUCCESS);
-                        msgInfo.setDataPath(fileElem.getPath());
+                        msgInfo.setStatus(MessageInfo.MSG_STATUS_UN_DOWNLOAD);
+                        msgInfo.setDataPath(path);
                     }
-
                 }
                 msgInfo.setExtra("[文件]");
             }
@@ -601,7 +601,7 @@ public class MessageInfoUtil {
             if (msgInfo.isSelf()) {
                 msgInfo.setExtra("您撤回了一条消息");
             } else if (msgInfo.isGroup()) {
-                String message = wrapperColor(msgInfo.getFromUser());
+                String message = TUIKitConstants.covert2HTMLString(msgInfo.getFromUser());
                 msgInfo.setExtra(message + "撤回了一条消息");
             } else {
                 msgInfo.setExtra("对方撤回了一条消息");
@@ -618,10 +618,6 @@ public class MessageInfoUtil {
             }
         }
         return msgInfo;
-    }
-
-    private static String wrapperColor(String raw) {
-        return "\"<font color=\"#338BFF\">" + raw + "</font>\"";
     }
 
     private static int TIMElemType2MessageInfoType(TIMElemType type) {

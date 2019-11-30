@@ -107,14 +107,44 @@ Web Demo 使用 `Vue` + `Vuex` + `Element-UI` 开发，你可以参考该 Demo �
 
    正确的 `userSig` 签发方式是将 `userSig` 的计算代码集成到您的服务端，并提供相应接口。在需要 `userSig` 时，发起请求获取动态 `userSig`。更多详情请参见 [服务端生成 UserSig](https://cloud.tencent.com/document/product/269/32688#GeneratingdynamicUserSig)。
 
-### Change Log
+### WebIM Demo Change Log
+
+#### 2019/11/22
+
+**Features**
+
+- 支持地理位置消息的渲染
+- 支持点击群消息头像查看详细资料
+- 支持我的名片的展示和修改
+
+**Change**
+
+- 优化几处体验问题
+
+#### 2019/11/01
+
+**Change**
+
+- 优化几处体验问题
+
+**BUG Fixes**
+
+- 修复删除群组会话后，会话又出现的问题
+- 修复退出群组时，Demo 出现空白区域的问题
+
+#### 2019/10/17
+
+**Features**
+
+- Web Demo 样式调整
+- SDK 版本更新，支持接收视频消息
+- 移除掷骰子功能，替换为使用评分
 
 #### 2019/10/12
 
 **Bug Fixes**
 
 - 修复 React 框架下发图片消息失败的问题
-
 
 #### 2019/09/21
 

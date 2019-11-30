@@ -5,14 +5,14 @@ import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
 
 import com.tencent.qcloud.tim.uikit.modules.chat.interfaces.IChatProvider;
-import com.tencent.qcloud.tim.uikit.modules.chat.layout.message.holder.MessageContentHolder;
-import com.tencent.qcloud.tim.uikit.utils.BackgroundTasks;
 import com.tencent.qcloud.tim.uikit.modules.chat.layout.message.holder.IOnCustomMessageDrawListener;
 import com.tencent.qcloud.tim.uikit.modules.chat.layout.message.holder.MessageBaseHolder;
+import com.tencent.qcloud.tim.uikit.modules.chat.layout.message.holder.MessageContentHolder;
 import com.tencent.qcloud.tim.uikit.modules.chat.layout.message.holder.MessageCustomHolder;
 import com.tencent.qcloud.tim.uikit.modules.chat.layout.message.holder.MessageEmptyHolder;
 import com.tencent.qcloud.tim.uikit.modules.chat.layout.message.holder.MessageHeaderHolder;
 import com.tencent.qcloud.tim.uikit.modules.message.MessageInfo;
+import com.tencent.qcloud.tim.uikit.utils.BackgroundTasks;
 import com.tencent.qcloud.tim.uikit.utils.TUIKitLog;
 
 import java.util.ArrayList;
@@ -21,10 +21,8 @@ import java.util.List;
 
 public class MessageListAdapter extends RecyclerView.Adapter {
 
-    private static final String TAG = MessageListAdapter.class.getSimpleName();
-
     public static final int MSG_TYPE_HEADER_VIEW = -99;
-
+    private static final String TAG = MessageListAdapter.class.getSimpleName();
     private boolean mLoading = true;
     private MessageLayout mRecycleView;
     private List<MessageInfo> mDataSource = new ArrayList<>();
@@ -35,12 +33,12 @@ public class MessageListAdapter extends RecyclerView.Adapter {
         mOnCustomMessageDrawListener = listener;
     }
 
-    public void setOnItemClickListener(MessageLayout.OnItemClickListener listener) {
-        this.mOnItemClickListener = listener;
-    }
-
     public MessageLayout.OnItemClickListener getOnItemClickListener() {
         return this.mOnItemClickListener;
+    }
+
+    public void setOnItemClickListener(MessageLayout.OnItemClickListener listener) {
+        this.mOnItemClickListener = listener;
     }
 
     @NonNull
@@ -59,12 +57,6 @@ public class MessageListAdapter extends RecyclerView.Adapter {
             case MSG_TYPE_HEADER_VIEW:
                 ((MessageHeaderHolder) baseHolder).setLoadingStatus(mLoading);
                 break;
-            case MessageInfo.MSG_TYPE_CUSTOM:
-                MessageCustomHolder customHolder = (MessageCustomHolder) holder;
-                if (mOnCustomMessageDrawListener != null) {
-                    mOnCustomMessageDrawListener.onDraw(customHolder, msg);
-                }
-                break;
             case MessageInfo.MSG_TYPE_TEXT:
             case MessageInfo.MSG_TYPE_IMAGE:
             case MessageInfo.MSG_TYPE_VIDEO:
@@ -79,6 +71,13 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                 break;
         }
         baseHolder.layoutViews(msg, position);
+        // 对于自定义消息，需要在正常布局之后，交给外部调用者重新加载渲染
+        if (getItemViewType(position) == MessageInfo.MSG_TYPE_CUSTOM) {
+            MessageCustomHolder customHolder = (MessageCustomHolder) holder;
+            if (mOnCustomMessageDrawListener != null) {
+                mOnCustomMessageDrawListener.onDraw(customHolder, msg);
+            }
+        }
     }
 
     @Override
@@ -98,7 +97,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
     @Override
     public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
         if (holder instanceof MessageContentHolder) {
-            ((MessageContentHolder)holder).msgContentFrame.setBackground(null);
+            ((MessageContentHolder) holder).msgContentFrame.setBackground(null);
         }
     }
 
@@ -112,6 +111,7 @@ public class MessageListAdapter extends RecyclerView.Adapter {
                     mRecycleView.scrollToEnd();
                 } else if (type == MessageLayout.DATA_CHANGE_TYPE_ADD_BACK) {
                     notifyItemRangeInserted(mDataSource.size() + 1, value);
+                    notifyDataSetChanged();
                     mRecycleView.scrollToEnd();
                 } else if (type == MessageLayout.DATA_CHANGE_TYPE_UPDATE) {
                     notifyItemChanged(value + 1);
@@ -151,8 +151,12 @@ public class MessageListAdapter extends RecyclerView.Adapter {
     }
 
     public void setDataSource(IChatProvider provider) {
-        this.mDataSource = provider.getDataSource();
-        provider.setAdapter(this);
+        if (provider == null) {
+            mDataSource.clear();
+        } else {
+            mDataSource = provider.getDataSource();
+            provider.setAdapter(this);
+        }
         notifyDataSourceChanged(MessageLayout.DATA_CHANGE_TYPE_REFRESH, getItemCount());
     }
 
